@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset=utf-8>
+	<title>My first three.js app</title>
+	<style>
+		body {
+			margin: 0;
+			height: 100vh
+		}
+
+		canvas {
+			width: 100%;
+			height: 100%;
+			display: block
+		}
+	</style>
+</head>
+
+<body>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/102/three.js"></script>
+	<!-- <script src='threex.dynamictexture.js'></script> -->
+	<script src="http://jeromeetienne.github.io/threex.dynamictexture/threex.dynamictexture.js"></script>
+
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.5/dat.gui.min.js"></script> -->
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.2/TweenMax.min.js"></script> -->
+	<!-- <script src="OrbitControls.js"></script> -->
+	<!-- <script src="three.js"></script> -->
+
+
+
+	<script>
+
+		var camera, scene, renderer, mesh;
+
+		var targetRotationX = 0;
+		var targetRotationOnMouseDownX = 0;
+
+		var targetRotationY = 0;
+		var targetRotationOnMouseDownY = 0;
+
+		var mouseX = 0;
+		var mouseXOnMouseDown = 0;
+
+		var mouseY = 0;
+		var mouseYOnMouseDown = 0;
+
+		var windowHalfX = window.innerWidth / 2;
+		var windowHalfY = window.innerHeight / 2;
+
+		init();
+		function init() {
+
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(
+				75,
+				window.innerWidth / window.innerHeight,
+				0.1,
+				100
+			);
+
+			camera.position.z = 5;
+
+			renderer = new THREE.WebGLRenderer({
+				antialias: true
+			});
+
+			renderer.setClearColor("#e5e5e5");
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+			document.body.appendChild(renderer.domElement);
+
+			window.addEventListener('resize', () => {
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+			});
+
+
+			//shape
+			var geometry = new THREE.BoxGeometry(3.5, 2, 0.01);
+
+			var textureLoader = new THREE.TextureLoader();
+
+			// textureLoader.setOptions( { imageOrientation: 'flipY' } );
+
+			var texture4 = textureLoader.load('front.jpg');
+
+			// texture4.setOptions( { imageOrientation: 'flipY' } );
+
+			// texture4.wrapS = texture4.wrapT = THREE.;
+		
+			texture4.anisotropy = 16;
+			// texture4.repeat = new THREE.Vector2(13, 13);
+
+			texture4.wrapS = THREE.RepeatWrapping;
+			texture4.repeat.x = - 1;
+			// texture4.repeat.y = 1;
+			texture4.flipY = true;
+
+
+			var texture5 = textureLoader.load('back.jpg');
+			texture5.wrapS = THREE.RepeatWrapping;
+			texture5.repeat.x = - 1;
+			// texture5.repeat.y = + 1;
+			texture5.anisotropy = 16;
+
+			// create a canvas element
+			var canvas1 = document.createElement('canvas');
+			var context1 = canvas1.getContext('2d');
+			context1.font = "Bold 40px Arial";
+			context1.fillStyle = "rgba(255,0,0,0.95)";
+			context1.fillText('User Name', 0, 50);
+			var texture1 = new THREE.Texture(canvas1)
+			texture1.needsUpdate = true;
+
+			texture1.wrapS = THREE.RepeatWrapping;
+			texture1.repeat.x = - 1;
+
+			var dynamicTexture = new THREEx.DynamicTexture(200, 200);
+
+			var materials = [
+				new THREE.MeshPhongMaterial({ color: 0xFFCC00 }),
+				new THREE.MeshPhongMaterial({ color: 0xFFCC00 }),
+				new THREE.MeshPhongMaterial({ color: 0xFFCC00 }),
+				new THREE.MeshPhongMaterial({ color: 0xFFCC00 }),
+				new THREE.MeshPhysicalMaterial({ map: texture1 }),
+				new THREE.MeshPhysicalMaterial({ map: texture4 })
+			];
+
+			var faceMaterial = new THREE.MeshFaceMaterial(materials);
+
+			//material
+			// var material = new THREE.MeshLambertMaterial({ color: 0xFFCC00 });
+
+			//combine to a mesh
+			mesh = new THREE.Mesh(geometry, materials);
+
+			dynamicTexture.drawText('Hello', 32, 54, 'red');
+
+			scene.add(mesh);
+
+			//light
+			var light = new THREE.PointLight(0xFFFFFF, 1, 500);
+			light.position.set(10, 0, 25);
+			light.castShadow = true;
+			scene.add(light)
+
+			renderer.render(scene, camera);
+
+			mesh.rotation.x = Math.PI;
+
+			var render = function () {
+				requestAnimationFrame(render);
+
+				//creating animations inside loop
+				// mesh.rotation.x += 0.01;
+
+				renderer.render(scene, camera);
+			}
+			render();
+			// animations();
+			document.addEventListener('mousedown', onDocumentMouseDown, false);
+			document.addEventListener('touchstart', onDocumentTouchStart, false);
+			document.addEventListener('touchmove', onDocumentTouchMove, false);
+
+		}
+
+
+		function onDocumentMouseDown(event) {
+			event.preventDefault();
+
+			document.addEventListener('mousemove', onDocumentMouseMove, false);
+			document.addEventListener('mouseup', onDocumentMouseUp, false);
+			document.addEventListener('mouseout', onDocumentMouseOut, false);
+
+			mouseXOnMouseDown = event.clientX - windowHalfX;
+			targetRotationOnMouseDownX = targetRotationX;
+
+			mouseYOnMouseDown = event.clientY - windowHalfY;
+			targetRotationOnMouseDownY = targetRotationY;
+		}
+		// console.log(mesh);
+		function onDocumentMouseMove(event) {
+			// console.log(mesh);
+			mouseX = event.clientX - windowHalfX;
+			mouseY = event.clientY - windowHalfY;
+			// mesh.scale, 1, { x: 6, ease: Expo.easeOut }
+			// targetRotationY = targetRotationOnMouseDownY + (mouseY - mouseYOnMouseDown) * 0.02;
+			// targetRotationX = targetRotationOnMouseDownX + (mouseX - mouseXOnMouseDown) * 0.02;
+			mesh.rotation.x += mouseY * 0.0001;
+			mesh.rotation.y -= mouseX * 0.0001;
+		}
+
+		function onDocumentMouseUp(event) {
+			document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			document.removeEventListener('mouseup', onDocumentMouseUp, false);
+			document.removeEventListener('mouseout', onDocumentMouseOut, false);
+		}
+
+		function onDocumentMouseOut(event) {
+			document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			document.removeEventListener('mouseup', onDocumentMouseUp, false);
+			document.removeEventListener('mouseout', onDocumentMouseOut, false);
+		}
+
+		function onDocumentTouchMove(event) {
+
+			if (event.touches.length == 1) {
+				event.preventDefault();
+				mouseX = event.touches[0].pageX - windowHalfX;
+				targetRotationX = targetRotationOnMouseDownX + (mouseX - mouseXOnMouseDown) * 0.05;
+				mouseY = event.touches[0].pageY - windowHalfY;
+				targetRotationY = targetRotationOnMouseDownY + (mouseY - mouseYOnMouseDown) * 0.05;
+			}
+
+		}
+
+		function onDocumentTouchStart(event) {
+			if (event.touches.length == 1) {
+				event.preventDefault();
+				mouseXOnMouseDown = event.touches[0].pageX - windowHalfX;
+				targetRotationOnMouseDownX = targetRotationX;
+
+				mouseYOnMouseDown = event.touches[0].pageY - windowHalfY;
+				targetRotationOnMouseDownY = targetRotationY;
+			}
+		}
+
+		function onDocumentTouchStart(event) {
+
+			if (event.touches.length == 1) {
+
+				event.preventDefault();
+
+				mouseXOnMouseDown = event.touches[0].pageX - windowHalfX;
+				targetRotationOnMouseDownX = targetRotationX;
+
+				mouseYOnMouseDown = event.touches[0].pageY - windowHalfY;
+				targetRotationOnMouseDownY = targetRotationY;
+
+			}
+
+		}
+
+		// function animations() {
+		// 	//animations
+		// 	tl = new TimelineMax({ paused: true });
+		// 	tl.to(mesh.scale, 1, { x: 2, ease: Expo.easeOut });
+		// 	// tl.to(mesh.rotation.x += 0.01);
+
+
+		// 	document.addEventListener('mousedown', () => {
+		// 		tl.play();
+		// 	})
+
+		// }
+
+
+		function render() {
+
+			renderer.render(scene, camera);
+
+		}
+
+		// var scene = new THREE.Scene();
+		// var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+		// var renderer = new THREE.WebGLRenderer();
+		// renderer.setSize( window.innerWidth, window.innerHeight );
+		// document.body.appendChild( renderer.domElement );
+
+		// var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+		// var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+		// var cube = new THREE.Mesh( geometry, material );
+		// scene.add( cube );
+
+		// camera.position.z = 5;
+
+		// var animate = function () {
+		// 	// requestAnimationFrame( animate );
+
+		// 	// cube.rotation.x += 0.01;
+		// 	// cube.rotation.y += 0.01;
+
+		// 	renderer.render( scene, camera );
+		// };
+
+		// animate();
+
+			// Our Javascript will go here.
+	</script>
+</body>
+
+</html>
